@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salami Diben Koto?</title>
+<style>
+  body {
+    margin: 0;
+    font-family: 'Arial', sans-serif;
+    background: #0c3c2e; /* গাঢ় সবুজ ব্যাকগ্রাউন্ড */
+    color: white;
+    text-align: center;
+    overflow-x: hidden;
+  }
+
+  .container { margin-top: 40px; padding: 20px; }
+
+  h1 { color: #ffcc00; font-size: 32px; margin-bottom: 5px; }
+  p { font-size: 18px; margin-bottom: 30px; }
+
+  /* চাকা ডিজাইন */
+  .wheel-container {
+    position: relative;
+    width: 320px;
+    height: 320px;
+    margin: 0 auto;
+  }
+
+  /* হলুদ মার্কার/তীর */
+  .marker {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0; 
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-top: 30px solid #ffcc00;
+    z-index: 10;
+  }
+
+  .wheel {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 8px solid #ffcc00;
+    background: conic-gradient(
+      #00ffff 0deg 60deg,    /* 100 tk */
+      #ffcc00 60deg 120deg,  /* Dua */
+      #ff4500 120deg 180deg, /* 2 tk */
+      #32cd32 180deg 240deg, /* 5 tk */
+      #1e90ff 240deg 300deg, /* 10 tk */
+      #ff1493 300deg 360deg  /* 50 tk */
+    );
+    transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
+    position: relative;
+  }
+
+  /* চাকার ভেতরের টেক্সট পজিশনিং - বড় ফন্ট */
+  .label {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 40px; /* লেখা মাঝখানে রাখার জন্য অ্যাডজাস্টমেন্ট */
+    box-sizing: border-box;
+    font-weight: bold;
+    color: #000;
+    font-size: 22px; /* ফন্ট সাইজ বড় করা হয়েছে */
+    transform-origin: center;
+  }
+
+  /* প্রত্যেকটি স্লাইসের লেখা সঠিক জায়গায় ঘোরানো */
+  .label:nth-child(1) { transform: rotate(30deg); }
+  .label:nth-child(2) { transform: rotate(90deg); }
+  .label:nth-child(3) { transform: rotate(150deg); }
+  .label:nth-child(4) { transform: rotate(210deg); }
+  .label:nth-child(5) { transform: rotate(270deg); }
+  .label:nth-child(6) { transform: rotate(330deg); }
+
+  button {
+    padding: 15px 60px;
+    background: #ffcc00;
+    color: #0c3c2e;
+    border: none;
+    border-radius: 40px;
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 40px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
+
+  /* Modal/Popup Design */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.9);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .modal-content {
+    background: white;
+    width: 85%;
+    max-width: 380px;
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    color: #333;
+    box-shadow: 0 0 30px rgba(255, 204, 0, 0.6);
+  }
+
+  video { 
+    width: 100%; 
+    border-radius: 12px; 
+    margin-bottom: 15px; 
+    aspect-ratio: 9/16; 
+    object-fit: cover;
+  }
+
+  .accept-btn { 
+    background: #0c3c2e; 
+    color: white; 
+    width: 100%; 
+    padding: 12px; 
+    border-radius: 8px; 
+    border:none; 
+    font-size: 18px; 
+    cursor: pointer; 
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Salami Diben Koto?</h1>
+  <p>Spin the wheel to claim your Eid Salami! 💸</p>
+
+  <div class="wheel-container">
+    <div class="marker"></div>
+    <div class="wheel" id="wheel">
+      <div class="label">100 tk</div>
+      <div class="label">Dua</div>
+      <div class="label">2 tk</div>
+      <div class="label">5 tk</div>
+      <div class="label">10 tk</div>
+      <div class="label">50 tk</div>
+    </div>
+  </div>
+
+  <button id="spinBtn" onclick="startSpin()">SPIN NOW!</button>
+</div>
+
+<div class="modal-overlay" id="videoModal">
+  <div class="modal-content">
+    <h2 style="color: #0c3c2e;">Alhamdulillah! 🤲</h2>
+    <p>You have won: <strong>Unlimited Dua!</strong></p>
+    <video id="myVideo" controls playsinline>
+      <source src="video.mp4" type="video/mp4">
+    </video>
+    <button class="accept-btn" onclick="location.reload()">Accept Dua</button>
+  </div>
+</div>
+
+<script>
+let isSpun = false;
+
+function startSpin() {
+  if (isSpun) return; // একবারের বেশি স্পিন করা যাবে না
+  
+  isSpun = true;
+  document.getElementById("spinBtn").disabled = true;
+
+  // লজিক: চাকাটি এমনভাবে থামবে যাতে মার্কারের নিচে 'Dua' থাকে।
+  // চাকা ৫ বার পূর্ণ ঘুরে ২৭০ ডিগ্রিতে থামলে 'Dua' উপরে আসবে।
+  const totalSpin = (360 * 5) + 270; 
+  
+  const wheel = document.getElementById("wheel");
+  wheel.style.transform = `rotate(${totalSpin}deg)`;
+
+  // ৪.৫ সেকেন্ড পর ভিডিও পপ-আপ আসবে
+  setTimeout(() => {
+    const modal = document.getElementById("videoModal");
+    const video = document.getElementById("myVideo");
+    
+    modal.style.display = "flex";
+    
+    // ভিডিও প্লে করার চেষ্টা
+    video.play().catch(error => {
+      console.log("Auto-play blocked, user must click play.");
+    });
+  }, 4500);
+}
+</script>
+
+</body>
+</html>
